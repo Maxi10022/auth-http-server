@@ -2,17 +2,22 @@
 
 'use strict';
 
-var chalk     = require('chalk'),
-    os         = require('os'),
-    httpServer = require('../lib/http-server'),
-    portfinder = require('portfinder'),
-    opener     = require('opener'),
+const setupLoginFiles = require('../lib/extensions/auth-setup');
 
-    fs         = require('fs'),
-    url        = require('url');
+var chalk          = require('chalk'),
+    os             = require('os'),
+    httpServer     = require('../lib/http-server'),
+    portfinder     = require('portfinder'),
+    opener         = require('opener'),
+
+    fs             = require('fs'),
+    url            = require('url');
+
 var argv = require('minimist')(process.argv.slice(2), {
   alias: {
-    tls: 'ssl'
+    tls: 'ssl',
+    supabaseKey: 'key',
+    supabaseUrl: 'url',
   }
 });
 var ifaces = os.networkInterfaces();
@@ -47,10 +52,10 @@ if (argv.h || argv.help) {
     '  -P --proxy       Fallback proxy if the request cannot be resolved. e.g.: http://someurl.com',
     '  --proxy-options  Pass options to proxy using nested dotted objects. e.g.: --proxy-options.secure false',
     '',
-    '  --username   Username for basic authentication [none]',
-    '               Can also be specified with the env variable NODE_HTTP_SERVER_USERNAME',
-    '  --password   Password for basic authentication [none]',
-    '               Can also be specified with the env variable NODE_HTTP_SERVER_PASSWORD',
+    '  --supabaseUrl --url  Supabase-url for use as authentication server [none]',
+    '                       Can also be specified with the env variable NODE_HTTP_SERVER_SUPABASE_URL',
+    '  --supabaseKey --key  Supabase-key for use as authentication server [none]',
+    '                       Can also be specified with the env variable NODE_HTTP_SERVER_SUPABASE_KEY',
     '',
     '  -S --tls --ssl   Enable secure request serving with TLS/SSL (HTTPS)',
     '  -C --cert    Path to TLS cert file (default: cert.pem)',
@@ -73,6 +78,8 @@ var port = argv.p || argv.port || parseInt(process.env.PORT, 10),
     proxyOptions = argv['proxy-options'],
     utc = argv.U || argv.utc,
     version = argv.v || argv.version,
+    supabaseKey = argv.supabaseKey || argv.supabase_key || process.env.NODE_HTTP_SERVER_SUPABASE_KEY,
+    supabaseUrl = argv.supabaseUrl || argv.supabase_url || process.env.NODE_HTTP_SERVER_SUPABASE_URL,
     logger;
 
 var proxyOptionsBooleanProps = [
@@ -152,8 +159,8 @@ function listen(port) {
     proxyOptions: proxyOptions,
     showDotfiles: argv.dotfiles,
     mimetypes: argv.mimetypes,
-    username: argv.username || process.env.NODE_HTTP_SERVER_USERNAME,
-    password: argv.password || process.env.NODE_HTTP_SERVER_PASSWORD
+    supabaseKey: argv.supabaseKey,
+    supabaseUrl: argv.supabaseUrl,
   };
 
   if (argv.cors) {
@@ -193,6 +200,23 @@ function listen(port) {
       logger.info(chalk.red('Error: Could not find private key ' + options.https.key));
       process.exit(1);
     }
+  }
+
+  if (!supabaseKey || !supabaseUrl) {
+  
+    logger.info(chalk.red('Error: supabaseKey and supabaseUrl must be provided'));
+
+    process.exit(1);
+  }
+
+  try {
+    setupLoginFiles(options);
+  }
+  catch (err) {
+
+    logger.info(chalk.red('Error: Could not setup login file ' + err));
+
+    process.exit(1);
   }
 
   var server = httpServer.createServer(options);
