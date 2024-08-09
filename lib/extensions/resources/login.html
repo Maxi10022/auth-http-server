@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png">
+    <style>
+        body {
+        background-color: #19191c;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: #ffffff;
+        }
+        .login-form {
+        background-color: rgba(48, 48, 51, 0.6);
+        border: 2px solid #303033;
+        border-radius: 10px;
+        padding: 20px;
+        width: 300px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .login-form input {
+        background-color: rgba(48, 48, 51, 0.6);
+        border: 2px solid #303033;
+        border-radius: 5px;
+        width: calc(100% - 24px);
+        padding: 10px;
+        margin: 10px 0;
+        color: #fff;
+        }
+        .login-form button {
+        background-color: rgba(48, 48, 51, 0.6);
+        border: 2px solid transparent;
+        border-radius: 5px;
+        width: 100%;
+        padding: 10px;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        }
+        .login-form button:hover {
+        background-color: rgba(48, 127, 255, 0.6);
+        }
+        .mt-10 {
+        margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+  <form class="login-form" onsubmit="event.preventDefault(); signIn();">
+    <div class="mt-10">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+    </div>
+    <div class="mt-10">
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+    </div>
+    <button class="mt-10" type="submit">Login</button>
+  </form>
+  <script src="./auth.js" type="module"></script>
+  <script type="module">
+
+    import { login } from './auth.js';
+
+    async function signIn() {
+
+      const email = document.getElementById('email').value;
+
+      const password = document.getElementById('password').value;
+
+      await login(email, password);
+    }
+
+    window.signIn = signIn;
+  </script>
+</body>
+</html>
