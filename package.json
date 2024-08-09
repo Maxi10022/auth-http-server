@@ -85,8 +85,10 @@
     }
   ],
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.1",
     "basic-auth": "^2.0.1",
     "chalk": "^4.1.2",
+    "cookie-parser": "^1.4.6",
     "corser": "^2.0.1",
     "he": "^1.2.0",
     "html-encoding-sniffer": "^3.0.0",
@@ -96,6 +98,7 @@
     "opener": "^1.5.1",
     "portfinder": "^1.0.28",
     "secure-compare": "3.0.1",
+    "template-file": "^6.0.1",
     "union": "~0.5.0",
     "url-join": "^4.0.1"
   },
@@ -103,7 +106,7 @@
     "eol": "^0.9.1",
     "eslint": "^4.19.1",
     "eslint-config-populist": "^4.2.0",
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "request": "^2.88.2",
     "tap": "^14.11.0"
   },
