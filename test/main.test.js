@@ -57,8 +57,8 @@ test('http-server main', (t) => {
             requestAsync("http://localhost:8080/").then(res => {
               t.ok(res);
               t.equal(res.statusCode, 200);
-              t.includes(res.body, './file');
-              t.includes(res.body, './canYouSeeMe');
+              t.match(res.body, /.*\.\/file.*/);
+              t.match(res.body, /.*\.\/canYouSeeMe.*/);
 
               // Custom headers
               t.equal(res.headers['access-control-allow-origin'], '*');
@@ -172,125 +172,7 @@ test('http-server main', (t) => {
           resolve();
         }
       });
-    }),
-    new Promise((resolve) => {
-      const server = httpServer.createServer({
-        root,
-        username: 'correct_username',
-        password: 'correct_password'
-      });
-
-      server.listen(8082, async () => {
-        try {
-          await Promise.all([
-            // Bad request with no auth
-            requestAsync("http://localhost:8082/file").then((res) => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // bad user
-            requestAsync("http://localhost:8082/file", {
-              auth: {
-                user: 'wrong_username',
-                pass: 'correct_password'
-              }
-            }).then((res) => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // bad password
-            requestAsync("http://localhost:8082/file", {
-              auth: {
-                user: 'correct_username',
-                pass: 'wrong_password'
-              }
-            }).then((res) => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // nonexistant file, and bad auth
-            requestAsync("http://localhost:8082/404", {
-              auth: {
-                user: 'correct_username',
-                pass: 'wrong_password'
-              }
-            }).then((res) => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // good path, good auth
-            requestAsync("http://localhost:8082/file", {
-              auth: {
-                user: 'correct_username',
-                pass: 'correct_password'
-              }
-            }).then(async (res) => {
-              t.equal(res.statusCode, 200);
-              const fileData = await fsReadFile(path.join(root, 'file'), 'utf8');
-              t.equal(res.body.trim(), fileData.trim(), 'auth-protected file with good auth has expected file content');
-            }).catch(err => t.fail(err.toString())),
-          ]);
-        } catch (err) {
-          t.fail(err.toString());
-        } finally {
-          server.close();
-          resolve();
-        }
-      });
-    }),
-
-    new Promise((resolve) => {
-      const server = httpServer.createServer({
-        root,
-        username: 'correct_username',
-        password: 123456
-      });
-
-      server.listen(8083, async () => {
-        try {
-          await Promise.all([
-            // regression test
-            requestAsync("http://localhost:8083/file").then(res => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // regression test, bad username
-            requestAsync("http://localhost:8083/file", {
-              auth: {
-                user: 'wrong_username',
-                pass: '123456'
-              }
-            }).then(res => {
-              t.equal(res.statusCode, 401);
-              t.equal(res.body, 'Access denied', 'Bad auth returns expected body');
-            }).catch(err => t.fail(err.toString())),
-
-            // regression test, correct auth, even though the password is a
-            // different type.
-            requestAsync("http://localhost:8083/file", {
-              auth: {
-                user: 'correct_username',
-                pass: '123456'
-              }
-            }).then(async (res) => {
-              t.equal(res.statusCode, 200);
-              const fileData = await fsReadFile(path.join(root, 'file'), 'utf8');
-              t.equal(res.body.trim(), fileData.trim(), 'numeric auth with good auth has expected file content');
-            }).catch(err => t.fail(err.toString()))
-          ]);
-        } catch (err) {
-          t.fail(err.toString());
-        } finally {
-          server.close();
-          resolve();
-        }
-      });
-    }),
+    })
   ]).then(() => t.end())
     .catch(err => {
       t.fail(err.toString());

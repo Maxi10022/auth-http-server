@@ -39,8 +39,8 @@ function startServer(url, port, t) {
       checkServerIsRunning(url, msg, ecstatic, t);
     });
   } else {
-    ecstatic.on('exit', (evt) => {
-         t.notEqual(evt.code, 0, 'err:Running on invalid port not allowed');
+    ecstatic.on('exit', (evt) => {      
+        t.not(evt.code, 0, 'err:Running on invalid port not allowed');
     });
   }
 }
