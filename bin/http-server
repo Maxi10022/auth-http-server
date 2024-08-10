@@ -3,6 +3,7 @@
 'use strict';
 
 const setupLoginFiles = require('../lib/extensions/auth-setup');
+const clearAuthFiles = require('../lib/extensions/auth-cleanup');
 
 var chalk          = require('chalk'),
     os             = require('os'),
@@ -322,10 +323,12 @@ if (process.platform === 'win32') {
 
 process.on('SIGINT', function () {
   logger.info(chalk.red('http-server stopped.'));
+  clearAuthFiles();
   process.exit();
 });
 
 process.on('SIGTERM', function () {
   logger.info(chalk.red('http-server stopped.'));
+  clearAuthFiles(process.cwd());
   process.exit();
 });
