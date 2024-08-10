@@ -30,7 +30,5 @@
     "handleOptionsMethod",
     "handleoptionsmethod",
     "handle-options-method"
-  ],
-  "supabaseUrl": [ "supabaseUrl", "supabaseurl", "supabase-url", "supabase_url" ],
-  "supabaseKey": [ "supabaseKey", "supabasekey", "supabase-key", "supabase_key" ]
+  ]
 }
