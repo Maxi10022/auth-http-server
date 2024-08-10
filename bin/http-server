@@ -224,15 +224,17 @@ function listen(port) {
       typeof element === 'string');
   }
 
-  if (!supabaseKey || !supabaseUrl || !supabaseAnonKey) {
+  if (supabaseKey || supabaseUrl || supabaseAnonKey) {
+
+    if (!supabaseKey || !supabaseUrl || !supabaseAnonKey){
+      if (!supabaseKey) logger.info(chalk.red('Error: supabaseKey must be provided'));
+
+      if (!supabaseUrl) logger.info(chalk.red('Error: supabaseUrl must be provided'));
   
-    if (!supabaseKey) logger.info(chalk.red('Error: supabaseKey must be provided'));
-
-    if (!supabaseUrl) logger.info(chalk.red('Error: supabaseUrl must be provided'));
-
-    if (!supabaseAnonKey) logger.info(chalk.red('Error: supabaseAnonKey must be provided'));
-
-    process.exit(1);
+      if (!supabaseAnonKey) logger.info(chalk.red('Error: supabaseAnonKey must be provided'));
+  
+      process.exit(1);
+    }    
   }
 
   try {
