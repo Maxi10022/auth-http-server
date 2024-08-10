@@ -9,7 +9,83 @@ This fork is a simple, command-line static HTTP server, with a [supabase](https:
 
 As the original, it is powerful enough for production usage, but it's simple and hackable enough to be used for testing, local development and learning.
 
-![Example of running http-server](https://github.com/http-party/http-server/raw/master/screenshots/public.png)
+## Supabase Setup
+
+`auth-http-server` supports role based access to the server. 
+For this to work, the [included PosgreSQL database](https://supabase.com/docs/guides/database/overview) needs the tables `user_roles` and `roles`.
+
+The default role is called `docs_reader`, which the server validates by default if not specified otherwise. 
+
+
+> Roles which should be checked can be specified like so: `--roles [ docs_reader, docs_writer ]`.
+> <br>**Note: Only one of the specified roles must match for the user to be allowed to access.** 
+
+Execute this setup script to setup the tables with [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) enabled and the required policies: 
+
+<details>
+<summary>Show PostgreSQL setup-script</summary>
+
+    create table if not exists roles
+    (
+        id             uuid                     default gen_random_uuid()                not null
+        primary key,
+        created_at_utc timestamp with time zone default (now() AT TIME ZONE 'utc'::text) not null,
+        name           text                                                              not null
+        unique,
+        description    text
+    );
+
+    alter table roles
+    owner to postgres;
+    
+    create policy user_can_select_granted_roles on roles
+    as permissive
+    for select
+    to authenticated
+    using (EXISTS (SELECT 1
+    FROM user_roles
+    WHERE ((user_roles.role_id = roles.id) AND (user_roles.user_id = auth.uid()))));
+    
+    grant delete, insert, references, select, trigger, truncate, update on roles to anon;
+    
+    grant delete, insert, references, select, trigger, truncate, update on roles to authenticated;
+    
+    grant delete, insert, references, select, trigger, truncate, update on roles to service_role;
+    
+    ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+
+    INSERT INTO public.roles (name, description) VALUES ('docs_reader', 'The user has read access to all documentations with authentication based on this Supabase project.');
+    
+    create table if not exists user_roles
+    (
+        user_id        uuid                                                              not null
+        references auth.users
+        on update restrict on delete cascade,
+        role_id        uuid                     default gen_random_uuid()                not null
+        references roles
+        on update restrict on delete cascade,
+        granted_at_utc timestamp with time zone default (now() AT TIME ZONE 'utc'::text) not null,
+        primary key (user_id, role_id)
+    );
+    
+    alter table user_roles
+    owner to postgres;
+    
+    create policy user_can_select_own_grants on user_roles
+    as permissive
+    for select
+    to authenticated
+    using ((SELECT auth.uid() AS uid) = user_id);
+    
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to anon;
+    
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to authenticated;
+    
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to service_role;
+    
+    ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+   
+</details>
 
 ## Installation:
 
@@ -45,33 +121,34 @@ This will install `auth-http-server` globally so that it may be run from the com
 
 ## Available Options:
 
-| Command                  | 	Description                                                                                                                                                                                                                                     | Defaults  |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| `-p` or `--port`         | Port to use. Use `-p 0` to look for an open port, starting at 8080. It will also read from `process.env.PORT`.                                                                                                                                   |8080 |
-| `-a`                     | Address to use                                                                                                                                                                                                                                   |0.0.0.0|
-| `-d`                     | Show directory listings                                                                                                                                                                                                                          |`true` |
-| `-i`                     | Display autoIndex                                                                                                                                                                                                                                | `true` |
-| `-g` or `--gzip`         | When enabled it will serve `./public/some-file.js.gz` in place of `./public/some-file.js` when a gzipped version of the file exists and the request accepts gzip encoding. If brotli is also enabled, it will try to serve brotli first.         |`false`|
-| `-b` or `--brotli`       | When enabled it will serve `./public/some-file.js.br` in place of `./public/some-file.js` when a brotli compressed version of the file exists and the request accepts `br` encoding. If gzip is also enabled, it will try to serve brotli first. |`false`|
-| `-e` or `--ext`          | Default file extension if none supplied                                                                                                                                                                                                          |`html` | 
-| `-s` or `--silent`       | Suppress log messages from output                                                                                                                                                                                                                | |
-| `--cors`                 | Enable CORS via the `Access-Control-Allow-Origin` header                                                                                                                                                                                         | |
-| `-o [path]`              | Open browser window after starting the server. Optionally provide a URL path to open. e.g.: -o /other/dir/                                                                                                                                       | |
-| `-c`                     | Set cache time (in seconds) for cache-control max-age header, e.g. `-c10` for 10 seconds. To disable caching, use `-c-1`.                                                                                                                        |`3600` |
-| `-U` or `--utc`          | Use UTC time format in log messages.                                                                                                                                                                                                             | |
-| `--log-ip`               | Enable logging of the client's IP address                                                                                                                                                                                                        |`false` |
-| `-P` or `--proxy`        | Proxies all requests which can't be resolved locally to the given url. e.g.: -P http://someurl.com                                                                                                                                               | |
+| Command                  | 	Description                                                                                                                                                                                                                                     | Defaults          |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| `-p` or `--port`         | Port to use. Use `-p 0` to look for an open port, starting at 8080. It will also read from `process.env.PORT`.                                                                                                                                   | 8080              |
+| `-a`                     | Address to use                                                                                                                                                                                                                                   | 0.0.0.0           |
+| `-d`                     | Show directory listings                                                                                                                                                                                                                          | `true`            |
+| `-i`                     | Display autoIndex                                                                                                                                                                                                                                | `true`            |
+| `-g` or `--gzip`         | When enabled it will serve `./public/some-file.js.gz` in place of `./public/some-file.js` when a gzipped version of the file exists and the request accepts gzip encoding. If brotli is also enabled, it will try to serve brotli first.         | `false`           |
+| `-b` or `--brotli`       | When enabled it will serve `./public/some-file.js.br` in place of `./public/some-file.js` when a brotli compressed version of the file exists and the request accepts `br` encoding. If gzip is also enabled, it will try to serve brotli first. | `false`           |
+| `-e` or `--ext`          | Default file extension if none supplied                                                                                                                                                                                                          | `html`            | 
+| `-s` or `--silent`       | Suppress log messages from output                                                                                                                                                                                                                |                   |
+| `--cors`                 | Enable CORS via the `Access-Control-Allow-Origin` header                                                                                                                                                                                         |                   |
+| `-o [path]`              | Open browser window after starting the server. Optionally provide a URL path to open. e.g.: -o /other/dir/                                                                                                                                       |                   |
+| `-c`                     | Set cache time (in seconds) for cache-control max-age header, e.g. `-c10` for 10 seconds. To disable caching, use `-c-1`.                                                                                                                        | `3600`            |
+| `-U` or `--utc`          | Use UTC time format in log messages.                                                                                                                                                                                                             |                   |
+| `--log-ip`               | Enable logging of the client's IP address                                                                                                                                                                                                        | `false`           |
+| `-P` or `--proxy`        | Proxies all requests which can't be resolved locally to the given url. e.g.: -P http://someurl.com                                                                                                                                               |                   |
 | `--proxy-options`        | Pass proxy [options](https://github.com/http-party/node-http-proxy#options) using nested dotted objects. e.g.: --proxy-options.secure false                                                                                                      |
-| `--supabaseUrl`          | The supabase project-url.                                                                                                                                                                                                                        | |
-| `--supabaseKey`          | The supabase projects anon-key.                                                                                                                                                                                                                  | |
-| `-S`, `--tls` or `--ssl` | Enable secure request serving with TLS/SSL (HTTPS)                                                                                                                                                                                               |`false`|
-| `-C` or `--cert`         | Path to ssl cert file                                                                                                                                                                                                                            |`cert.pem` | 
-| `-K` or `--key`          | Path to ssl key file                                                                                                                                                                                                                             |`key.pem` |
-| `-r` or `--robots`       | Automatically provide a /robots.txt (The content of which defaults to `User-agent: *\nDisallow: /`)                                                                                                                                              | `false` |
-| `--no-dotfiles`          | Do not show dotfiles                                                                                                                                                                                                                             | |
-| `--mimetypes`            | Path to a .types file for custom mimetype definition                                                                                                                                                                                             | |
-| `-h` or `--help`         | Print this list and exit.                                                                                                                                                                                                                        |   |
-| `-v` or `--version`      | Print the version and exit.                                                                                                                                                                                                                      | |
+| `--supabaseUrl`          | The supabase project-url.                                                                                                                                                                                                                        |                   |
+| `--supabaseKey`          | The supabase projects anon-key.                                                                                                                                                                                                                  
+| `--roles`                | The allowed roles which can access the server.                                                                                                                                                                                                   | `[ docs_reader ]` |
+| `-S`, `--tls` or `--ssl` | Enable secure request serving with TLS/SSL (HTTPS)                                                                                                                                                                                               | `false`           |
+| `-C` or `--cert`         | Path to ssl cert file                                                                                                                                                                                                                            | `cert.pem`        | 
+| `-K` or `--key`          | Path to ssl key file                                                                                                                                                                                                                             | `key.pem`         |
+| `-r` or `--robots`       | Automatically provide a /robots.txt (The content of which defaults to `User-agent: *\nDisallow: /`)                                                                                                                                              | `false`           |
+| `--no-dotfiles`          | Do not show dotfiles                                                                                                                                                                                                                             |                   |
+| `--mimetypes`            | Path to a .types file for custom mimetype definition                                                                                                                                                                                             |                   |
+| `-h` or `--help`         | Print this list and exit.                                                                                                                                                                                                                        |                   |
+| `-v` or `--version`      | Print the version and exit.                                                                                                                                                                                                                      |                   |
 
 ## Magic Files
 
