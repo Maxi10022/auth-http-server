@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png">
+    <style>
+        body {
+            background-color: #19191c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+            text-align: center;
+        }
+        .error-container {
+            background-color: rgba(48, 48, 51, 0.6);
+            border: 2px solid #303033;
+            border-radius: 10px;
+            padding: 20px;
+            width: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .error-container h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .error-container p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .error-container button {
+            background-color: rgba(48, 48, 51, 0.6);
+            border: 2px solid transparent;
+            border-radius: 5px;
+            padding: 10px 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .error-container button:hover {
+            background-color: rgba(48, 127, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>500</h1>
+        <p>Internal Server Error</p>
+        <p>Sorry, something went wrong on our end.</p>
+        <button onclick="window.location.href='../index.html';">Return To Home</button>
+    </div>
+</body>
+</html>
