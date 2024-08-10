@@ -17,7 +17,7 @@ For this to work, the [included PosgreSQL database](https://supabase.com/docs/gu
 The default role is called `docs_reader`, which the server validates by default if not specified otherwise. 
 
 
-> Roles which should be checked can be specified like so: `--roles [ docs_reader, docs_writer ]`.
+> Roles which should be checked can be specified like so: `--roles 'docs_reader, docs_writer'`.
 > <br>**Note: Only one of the specified roles must match for the user to be allowed to access.** 
 
 Execute this setup script to setup the tables with [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) enabled and the required policies: 
