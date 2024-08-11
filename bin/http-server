@@ -324,12 +324,14 @@ if (process.platform === 'win32') {
 
 process.on('SIGINT', function () {
   logger.info(chalk.red('http-server stopped.'));
-  clearAuthFiles();
+  // TODO fix if path not provided
+  clearAuthFiles(argv._[0]);
   process.exit();
 });
 
 process.on('SIGTERM', function () {
   logger.info(chalk.red('http-server stopped.'));
-  clearAuthFiles(process.cwd());
+  // TODO fix if path not provided
+  clearAuthFiles(argv._[0]);
   process.exit();
 });
