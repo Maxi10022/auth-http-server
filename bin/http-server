@@ -88,6 +88,7 @@ var port = argv.p || argv.port || parseInt(process.env.PORT, 10),
     supabaseKey = argv.supabaseKey || argv.supabase_key || process.env.NODE_HTTP_SERVER_SUPABASE_KEY,
     supabaseUrl = argv.supabaseUrl || argv.supabase_url || process.env.NODE_HTTP_SERVER_SUPABASE_URL,
     supabaseAnonKey = argv.supabaseAnonKey || argv.supabase_anon_key || process.env.NODE_HTTP_SERVER_SUPABASE_ANON_KEY,
+    jwtSecret = argv.jwtSecret || process.env.NODE_HTTP_SERVER_JWT_SECRET,
     roles = argv.roles || 'docs_reader',
     logger;
 
@@ -168,10 +169,13 @@ function listen(port) {
     proxyOptions: proxyOptions,
     showDotfiles: argv.dotfiles,
     mimetypes: argv.mimetypes,
-    supabaseKey: argv.supabaseKey,
-    supabaseAnonKey: argv.supabaseAnonKey,
-    supabaseUrl: argv.supabaseUrl,    
+    supabaseKey: supabaseKey,
+    supabaseAnonKey: supabaseAnonKey,
+    supabaseUrl: supabaseUrl,  
+    jwtSecret: jwtSecret,  
   };
+
+  console.log('options', options);
 
   if (argv.cors) {
     options.cors = true;
