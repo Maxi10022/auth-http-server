@@ -37,25 +37,17 @@ Execute this setup script to setup the tables with [RLS](https://supabase.com/do
 
     alter table roles
     owner to postgres;
-    
-    create policy user_can_select_granted_roles on roles
-    as permissive
-    for select
-    to authenticated
-    using (EXISTS (SELECT 1
-    FROM user_roles
-    WHERE ((user_roles.role_id = roles.id) AND (user_roles.user_id = auth.uid()))));
-    
+
     grant delete, insert, references, select, trigger, truncate, update on roles to anon;
-    
+
     grant delete, insert, references, select, trigger, truncate, update on roles to authenticated;
-    
+
     grant delete, insert, references, select, trigger, truncate, update on roles to service_role;
-    
+
     ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
 
     INSERT INTO public.roles (name, description) VALUES ('docs_reader', 'The user has read access to all documentations with authentication based on this Supabase project.');
-    
+
     create table if not exists user_roles
     (
         user_id        uuid                                                              not null
@@ -67,23 +59,31 @@ Execute this setup script to setup the tables with [RLS](https://supabase.com/do
         granted_at_utc timestamp with time zone default (now() AT TIME ZONE 'utc'::text) not null,
         primary key (user_id, role_id)
     );
-    
+
     alter table user_roles
     owner to postgres;
-    
+
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to anon;
+
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to authenticated;
+
+    grant delete, insert, references, select, trigger, truncate, update on user_roles to service_role;
+
+    ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+
     create policy user_can_select_own_grants on user_roles
     as permissive
     for select
     to authenticated
     using ((SELECT auth.uid() AS uid) = user_id);
-    
-    grant delete, insert, references, select, trigger, truncate, update on user_roles to anon;
-    
-    grant delete, insert, references, select, trigger, truncate, update on user_roles to authenticated;
-    
-    grant delete, insert, references, select, trigger, truncate, update on user_roles to service_role;
-    
-    ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+
+    create policy user_can_select_granted_roles on roles
+    as permissive
+    for select
+    to authenticated
+    using (EXISTS (SELECT 1
+    FROM user_roles
+    WHERE ((user_roles.role_id = roles.id) AND (user_roles.user_id = auth.uid()))));
    
 </details>
 
