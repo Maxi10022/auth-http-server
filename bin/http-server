@@ -19,6 +19,8 @@ var argv = require('minimist')(process.argv.slice(2), {
     tls: 'ssl',
     supabaseKey: 'key',
     supabaseUrl: 'url',
+    supabaseKey: 'adminKey',
+    supabaseAnonKey: 'anonKey',
   }
 });
 var ifaces = os.networkInterfaces();
