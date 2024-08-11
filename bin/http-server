@@ -4,6 +4,7 @@
 
 const setupLoginFiles = require('../lib/extensions/auth-setup');
 const clearAuthFiles = require('../lib/extensions/auth-cleanup');
+let root = '';
 
 var chalk          = require('chalk'),
     os             = require('os'),
@@ -239,8 +240,12 @@ function listen(port) {
     }    
   }
 
+  var server = httpServer.createServer(options);
+
+  root = server.root;
+
   try {
-    setupLoginFiles(options);
+    setupLoginFiles(root, options);
   }
   catch (err) {
 
@@ -249,13 +254,13 @@ function listen(port) {
     process.exit(1);
   }
 
-  var server = httpServer.createServer(options);
+
   server.listen(port, host, function () {
     var protocol = tls ? 'https://' : 'http://';
 
     logger.info([
       chalk.yellow('Starting up http-server, serving '),
-      chalk.cyan(server.root),
+      chalk.cyan(root),
       tls ? (chalk.yellow(' through') + chalk.cyan(' https')) : ''
     ].join(''));
 
@@ -324,14 +329,12 @@ if (process.platform === 'win32') {
 
 process.on('SIGINT', function () {
   logger.info(chalk.red('http-server stopped.'));
-  // TODO fix if path not provided
-  clearAuthFiles(argv._[0]);
+  clearAuthFiles(root);
   process.exit();
 });
 
 process.on('SIGTERM', function () {
   logger.info(chalk.red('http-server stopped.'));
-  // TODO fix if path not provided
-  clearAuthFiles(argv._[0]);
+  clearAuthFiles(root);
   process.exit();
 });
